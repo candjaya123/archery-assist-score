@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "SSH FS - penship_wlan",
+			"uri": "ssh://penship_wlan/home/penship/KRBAI-2024/src"
+		}
+	],
+	"settings": {}
+}
