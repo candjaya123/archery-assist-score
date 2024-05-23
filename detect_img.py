@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+countLine = 0
+countCircle = 0
 
 def load_hsv_ranges(file_path):
     with open(file_path, 'r') as file:
@@ -66,32 +68,54 @@ def main():
     combined_mask = cv2.bitwise_or(mask1, cv2.bitwise_or(mask2, cv2.bitwise_or(mask3, cv2.bitwise_or(mask4, mask5))))
     arrow = cv2.bitwise_not(combined_mask)
 
-    # Find circles using Hough Circle Transform
-    # circles = cv2.HoughCircles(combined_mask, cv2.HOUGH_GRADIENT, dp=1, minDist=1000, param1=50, param2=30, minRadius=0, maxRadius=0)
-
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.medianBlur(gray, 5)
     rows = gray.shape[0]
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=50, minRadius=1, maxRadius=40) #kuning dalam
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=50, minRadius=1, maxRadius=100) #kuning luar
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=50, minRadius=100, maxRadius=200) #merah luar
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=60, minRadius=70, maxRadius=200) #biru dalam
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=70, minRadius=100, maxRadius=250) #hitam dalam
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8, param1=100, param2=70, minRadius=200, maxRadius=300) #hitam luar
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        for i in circles[0, :]:
-            # Draw the outer circle
-            cv2.circle(image, (i[0], i[1]), i[2], (0, 255, 0), 2)
-            # Draw the center of the circle
-            cv2.circle(image, (i[0], i[1]), 2, (0, 0, 255), 3)
+    # Define circle parameters
+    circle_params = [
+        (1, rows / 8, 100, 50, 1, 40),    # kuning paling dalam
+        (1, rows / 8, 100, 50, 1, 70),    # kuning dalam
+        (1, rows / 8, 100, 50, 1, 100),   # kuning luar
+        (1, rows / 8, 100, 60, 100, 120), # merah dalam
+        (1, rows / 8, 100, 50, 100, 200), # merah luar
+        (1, rows / 8, 100, 60, 70, 200),  # biru dalam
+        (1, rows / 8, 100, 60, 185, 220),  # biru luar
+        (1, rows / 8, 100, 70, 250, 300),  # hitam dalam
+        (1, rows / 8, 100, 70, 280, 320),  # hitam luar
+        (1, rows / 8, 100, 70, 320, 340),  # hitam dalam
+        (1, rows / 8, 100, 70, 320, 400),  # hitam luar
+    ]
+    
+    for dp, minDist, param1, param2, minRadius, maxRadius in circle_params:
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, minDist,
+                                   param1=param1, param2=param2,
+                                   minRadius=minRadius, maxRadius=maxRadius)
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            for i in circles[0, :]:
+                global countCircle
+                countCircle += 1
+                cv2.circle(image, (i[0], i[1]), i[2], (0, 255, 0), 2)  # Draw the outer circle
+                if(countCircle == 11):
+                    # cv2.circle(image, (i[0], i[1] - i[2]), 2, (0, 0, 255), 2) 
+                    # cv2.circle(image, (i[0], i[1] + i[2]), 2, (0, 0, 255), 2)
+                    # cv2.circle(image, (i[0] - i[2] , i[1]), 2, (0, 0, 255), 2)
+                    # cv2.circle(image, (i[0] + i[2] , i[1]), 2, (0, 0, 255), 2)
+                    upperBound = i[1] - i[2]
+                    lowerBound = i[1] + i[2]
+                    leftBound = i[0] - i[2]
+                    rightBound = i[0] + i[2]
 
     # Find lines using Hough Line Transform
-    lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold=300, minLineLength=50, maxLineGap=50)
+    lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold=400, minLineLength=50, maxLineGap=50)
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            # cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 1)
+            # cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
+            if(y1 > upperBound and y1 < lowerBound and x1 > leftBound and x1 < rightBound):
+                cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
 
     # Display result color
     # cv2.imshow('Putih', mask1)
