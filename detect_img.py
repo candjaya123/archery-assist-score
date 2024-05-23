@@ -30,7 +30,7 @@ def main():
     min_hue_temp5, max_hue_temp5, min_saturation_temp5, max_saturation_temp5, min_value_temp5, max_value_temp5 = load_hsv_ranges("param/color5.txt")
 
     # Load the image
-    image = cv2.imread('target2.jpg')  # Replace 'your_image.jpg' with the path to your image file
+    image = cv2.imread('tes_target.jpg')  # Replace 'your_image.jpg' with the path to your image file
 
     # Blur the image
     blurred_image = cv2.GaussianBlur(image, (11, 11), 0)
@@ -201,11 +201,11 @@ def main():
                 cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
 
     # Display result color
-    # cv2.imshow('Putih', mask1)
-    # cv2.imshow('Hitam', mask2)
-    # cv2.imshow('Biru', mask3)
-    # cv2.imshow('merah', mask4)
-    # cv2.imshow('kuning', mask5)
+    cv2.imshow('Putih', mask1)
+    cv2.imshow('Hitam', mask2)
+    cv2.imshow('Biru', mask3)
+    cv2.imshow('merah', mask4)
+    cv2.imshow('kuning', mask5)
 
     # cv2.imshow('not_putih', not_mask1)
     # cv2.imshow('not_hitam', not_mask2)
