@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 countLine = 0
 countCircle = 0
+def euclidean_distance(point1, point2):
+    return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
 def load_hsv_ranges(file_path):
     with open(file_path, 'r') as file:
@@ -96,6 +98,36 @@ def main():
                 global countCircle
                 countCircle += 1
                 cv2.circle(image, (i[0], i[1]), i[2], (0, 255, 0), 2)  # Draw the outer circle
+                if(countCircle == 1):
+                    radius_1 = i[2]
+                    circle_center_1 = (i[0], i[1])
+                if(countCircle == 2):
+                    radius_2 = i[2]
+                    circle_center_2 = (i[0], i[1])
+                if(countCircle == 3):
+                    radius_3 = i[2]
+                    circle_center_3 = (i[0], i[1])
+                if(countCircle == 4):
+                    radius_4 = i[2]
+                    circle_center_4 = (i[0], i[1])
+                if(countCircle == 5):
+                    radius_5 = i[2]
+                    circle_center_5 = (i[0], i[1])
+                if(countCircle == 6):
+                    radius_6 = i[2]
+                    circle_center_6 = (i[0], i[1])
+                if(countCircle == 7):
+                    radius_7 = i[2]
+                    circle_center_7 = (i[0], i[1])
+                if(countCircle == 8):
+                    radius_8 = i[2]
+                    circle_center_8 = (i[0], i[1])
+                if(countCircle == 9):
+                    radius_9 = i[2]
+                    circle_center_9 = (i[0], i[1])
+                if(countCircle == 10):
+                    radius_10 = i[2]
+                    circle_center_10 = (i[0], i[1])
                 if(countCircle == 11):
                     # cv2.circle(image, (i[0], i[1] - i[2]), 2, (0, 0, 255), 2) 
                     # cv2.circle(image, (i[0], i[1] + i[2]), 2, (0, 0, 255), 2)
@@ -105,6 +137,10 @@ def main():
                     lowerBound = i[1] + i[2]
                     leftBound = i[0] - i[2]
                     rightBound = i[0] + i[2]
+                    radius_11 = i[2]
+                    circle_center_11 = (i[0], i[1])
+                    # cv2.circle(image, (i[0], i[1]), i[2], (0, 255, 0), 2)  # Draw the outer circle
+
 
     # Find lines using Hough Line Transform
     lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold=400, minLineLength=50, maxLineGap=50)
@@ -114,6 +150,53 @@ def main():
             # cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 1)
             # cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
             if(y1 > upperBound and y1 < lowerBound and x1 > leftBound and x1 < rightBound):
+                tip_pos_1 = euclidean_distance((x1, y1), circle_center_1)
+                tip_pos_2 = euclidean_distance((x1, y1), circle_center_2)
+                tip_pos_3 = euclidean_distance((x1, y1), circle_center_3)
+                tip_pos_4 = euclidean_distance((x1, y1), circle_center_4)
+                tip_pos_5 = euclidean_distance((x1, y1), circle_center_5)
+                tip_pos_6 = euclidean_distance((x1, y1), circle_center_6)
+                tip_pos_7 = euclidean_distance((x1, y1), circle_center_7)
+                tip_pos_8 = euclidean_distance((x1, y1), circle_center_8)
+                tip_pos_9 = euclidean_distance((x1, y1), circle_center_9)
+                tip_pos_10 = euclidean_distance((x1, y1), circle_center_10)
+                tip_pos_11 = euclidean_distance((x1, y1), circle_center_11)
+                is_inside_1 = tip_pos_1 <= radius_1
+                is_inside_2 = tip_pos_2 <= radius_2
+                is_inside_3 = tip_pos_3 <= radius_3
+                is_inside_4 = tip_pos_4 <= radius_4
+                is_inside_5 = tip_pos_5 <= radius_5
+                is_inside_6 = tip_pos_6 <= radius_6
+                is_inside_7 = tip_pos_7 <= radius_7
+                is_inside_8 = tip_pos_8 <= radius_8
+                is_inside_9 = tip_pos_9 <= radius_9
+                is_inside_10 = tip_pos_10 <= radius_10
+                is_inside_11 = tip_pos_11 <= radius_11
+                if(is_inside_1):
+                    cv2.putText(image, f'BULLS EYE', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_2):
+                    cv2.putText(image, f'score : 10 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_3):
+                    cv2.putText(image, f'score : 9 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_4):
+                    cv2.putText(image, f'score : 8 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_5):
+                    cv2.putText(image, f'score : 7 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_6):
+                    cv2.putText(image, f'score : 6 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_7):
+                    cv2.putText(image, f'score : 5 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_8):
+                    cv2.putText(image, f'score : 4 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_9):
+                    cv2.putText(image, f'score : 3 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_10):
+                    cv2.putText(image, f'score : 2 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                elif(is_inside_1):
+                    cv2.putText(image, f'score : 1 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                else:
+                    cv2.putText(image, f'score : 0 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
                 cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
                 cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
 
