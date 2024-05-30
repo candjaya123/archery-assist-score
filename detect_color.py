@@ -27,7 +27,7 @@ def main():
     # min_hue_temp6, max_hue_temp6, min_saturation_temp6, max_saturation_temp6, min_value_temp6, max_value_temp6 = load_hsv_ranges("color6.txt")
 
     # Open camera
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     while True:
         ret, frame = cap.read()

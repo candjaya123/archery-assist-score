@@ -128,8 +128,8 @@ for image_path in images:
     # All the results have been drawn on the image, now display the image
     if show_results:
         cv2.imshow('Cropped Object', cropped_image)
-        cv2.imshow('Morphological Closing', image_closed)
-        cv2.imshow('Resized Cropped Object', resized_cropped_image)
+        # cv2.imshow('Morphological Closing', image_closed)
+        # cv2.imshow('Resized Cropped Object', resized_cropped_image)
         cv2.imshow('Object detector', image)
         
         # Press any key to continue to next image, or press 'q' to quit
