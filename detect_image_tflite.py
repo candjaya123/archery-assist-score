@@ -15,12 +15,12 @@ PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,GRAPH_NAME)
 PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_NAME,LABELMAP_NAME)
 
 IM_NAME = ''
-IM_DIR = 'test_images'
+IM_DIR = 'new_tes'
 
 save_results = False
 show_results = True
 
-num_device = 0
+num_device = 1
 
 min_conf_threshold = 0.7
 prev_frame_time = 0

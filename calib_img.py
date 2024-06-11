@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image = cv2.imread('target.jpg')  # Replace 'your_image.jpg' with the path to your image
+image = cv2.imread('image.png')  # Replace 'your_image.jpg' with the path to your image
 
 # Create a window to display the image
 cv2.namedWindow('Image')
@@ -16,7 +16,7 @@ min_saturation, max_saturation = 0, 0
 min_value, max_value = 0, 0
 
 # Set the default file name
-file_name = 'param/color.txt'
+file_name = 'param_tes/color.txt'
 def adjust_rectangle(event, x, y, flags, param):
     global rect_x, rect_y, rect_width, rect_height
     if event == cv2.EVENT_LBUTTONDOWN:
@@ -78,15 +78,15 @@ while True:
 
     key = cv2.waitKey(1)
     if key & 0xFF == ord('1'):
-        file_name = "param/color1.txt"
+        file_name = "param_tes/color1.txt"
     elif key & 0xFF == ord('2'):
-        file_name = "param/color2.txt"
+        file_name = "param_tes/color2.txt"
     elif key & 0xFF == ord('3'):
-        file_name = "param/color3.txt"
+        file_name = "param_tes/color3.txt"
     elif key & 0xFF == ord('4'):
-        file_name = "param/color4.txt"
+        file_name = "param_tes/color4.txt"
     elif key & 0xFF == ord('5'):
-        file_name = "param/color5.txt"
+        file_name = "param_tes/color5.txt"
 
     if key & 0xFF == ord('q'):
         break
