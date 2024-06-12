@@ -41,6 +41,49 @@ def detect_and_draw_contours(main_frame, mask, color, divider ,min_area=1000, mi
                     return center, radius, int(radius/divider)
     return 0,0,0
 
+def detect_green_circles(main_frame,mask):
+    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    centers = []
+    for contour in contours:
+        # Hitung momen kontur
+        M = cv2.moments(contour)
+        if M["m00"] != 0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            centers.append((cX, cY))
+            # Gambar lingkaran dan pusat kontur (opsional untuk visualisasi)
+            cv2.circle(main_frame, (cX, cY), 10, (0, 255, 0), -1)
+        else:
+            cX, cY = 0, 0
+    
+    if len(centers) == 4:
+        # Urutkan berdasarkan koordinat x dan y
+        centers_sorted = sorted(centers, key=lambda k: (k[1], k[0]))  # sort by y first, then by x
+
+        # Buat list untuk mengkategorikan pusat lingkaran
+        center1, center2, center3, center4 = None, None, None, None
+
+        # Dapatkan dimensi gambar untuk referensi pembagian area
+        height, width, _ = main_frame.shape
+        mid_x, mid_y = width // 2, height // 2
+
+        # Kategorikan berdasarkan posisi relatif terhadap tengah gambar
+        for center in centers_sorted:
+            x, y = center
+            if x <= mid_x and y <= mid_y:
+                center1 = center  # atas kiri
+            elif x > mid_x and y <= mid_y:
+                center2 = center  # atas kanan
+            elif x <= mid_x and y > mid_y:
+                center3 = center  # bawah kiri
+            elif x > mid_x and y > mid_y:
+                center4 = center  # bawah kanan
+
+    else:
+        center1 = center2 = center3 = center4 = None
+        # print("Jumlah lingkaran hijau yang terdeteksi bukan 4.")
+    return center1, center2, center3, center4
+
 def main():
     min_hue_temp1, max_hue_temp1, min_saturation_temp1, max_saturation_temp1, min_value_temp1, max_value_temp1 = load_hsv_ranges("param_tes/color1.txt")
     min_hue_temp2, max_hue_temp2, min_saturation_temp2, max_saturation_temp2, min_value_temp2, max_value_temp2 = load_hsv_ranges("param_tes/color2.txt")
@@ -49,24 +92,33 @@ def main():
     min_hue_temp5, max_hue_temp5, min_saturation_temp5, max_saturation_temp5, min_value_temp5, max_value_temp5 = load_hsv_ranges("param_tes/color5.txt")
 
     # Load the image
-    image = cv2.imread('image.png')  # Replace 'your_image.jpg' with the path to your image file
-
-    # Blur the image
+    kernel = np.ones((5, 5), np.uint8)
+    image = cv2.imread('new_tes/new7.png')  # Replace 'your_image.jpg' with the path to your image file
     blurred_image = cv2.GaussianBlur(image, (11, 11), 0)
-
-    # Convert image to HSV
     hsv_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HSV)
-
-    # Detect colors
-    mask_raw_blue = detect_color(hsv_image, min_hue_temp1, max_hue_temp1, min_saturation_temp1, max_saturation_temp1, min_value_temp1, max_value_temp1)
-    mask_raw_red = detect_color(hsv_image, min_hue_temp2, max_hue_temp2, min_saturation_temp2, max_saturation_temp2, min_value_temp2, max_value_temp2)
-    mask_raw_yellow = detect_color(hsv_image, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
-    mask_raw_yellow = detect_color(hsv_image, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
-    mask_raw_white = detect_color(hsv_image, min_hue_temp4, max_hue_temp4, min_saturation_temp4, max_saturation_temp4, min_value_temp4, max_value_temp4)
     border = detect_color(hsv_image, min_hue_temp5, max_hue_temp5, min_saturation_temp5, max_saturation_temp5, min_value_temp5, max_value_temp5)
+    mask_border = cv2.dilate(border,kernel,iterations = 1)
+    center1, center2, center3, center4 = detect_green_circles(image,mask_border)
+    width_trans = 640
+    height_trans = 640
+
+    pts1 = np.float32([center1,center2,center3,center4])
+    pts2 = np.float32([[0,0],[width_trans,0],[0,height_trans],[width_trans,height_trans]])
+    matrix = cv2.getPerspectiveTransform(pts1,pts2)
+    imgOut = cv2.warpPerspective(image,matrix,(width_trans,height_trans))
+
+    blurred_imgOut = cv2.GaussianBlur(imgOut, (11, 11), 0)
+    hsv_imgOut = cv2.cvtColor(blurred_imgOut, cv2.COLOR_BGR2HSV)
+
+    # cv2.imshow('Image trans', imgOut)
+
+    mask_raw_blue = detect_color(hsv_imgOut, min_hue_temp1, max_hue_temp1, min_saturation_temp1, max_saturation_temp1, min_value_temp1, max_value_temp1)
+    mask_raw_red = detect_color(hsv_imgOut, min_hue_temp2, max_hue_temp2, min_saturation_temp2, max_saturation_temp2, min_value_temp2, max_value_temp2)
+    mask_raw_yellow = detect_color(hsv_imgOut, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
+    mask_raw_yellow = detect_color(hsv_imgOut, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
+    mask_raw_white = detect_color(hsv_imgOut, min_hue_temp4, max_hue_temp4, min_saturation_temp4, max_saturation_temp4, min_value_temp4, max_value_temp4)
 
     # Apply morphology operations to masks
-    kernel = np.ones((5, 5), np.uint8)
 
     not_mask_blue = cv2.bitwise_not(mask_raw_blue)
     not_mask_red = cv2.bitwise_not(mask_raw_red)
@@ -80,23 +132,14 @@ def main():
     not_blue = cv2.bitwise_not(mask_blue)
     mask_white = cv2.bitwise_and(mask_raw_white, cv2.bitwise_and(not_yellow, cv2.bitwise_and(not_red, not_blue)))
     not_white = cv2.bitwise_not(mask_white)
-    # mask_border = cv2.morphologyEx(border, cv2.MORPH_CLOSE, kernel)
-    mask_border = cv2.dilate(border,kernel,iterations = 1)
-
-    # combined_mask = cv2.bitwise_or(mask_white, cv2.bitwise_or(mask_black, cv2.bitwise_or(mask_blue, cv2.bitwise_or(mask_red, mask_yellow))))
-    
+ 
     arrow = cv2.bitwise_and(not_blue, cv2.bitwise_and(not_red, cv2.bitwise_and(not_white, not_yellow)))
     arrow = cv2.morphologyEx(arrow, cv2.MORPH_CLOSE, kernel)
     arrow = cv2.dilate(arrow,kernel,iterations = 1)
-    
-    # combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
 
-    # arrow = cv2.bitwise_not(combined_mask)
-
-    circle_center_1, radius_2, radius_1 = detect_and_draw_contours(image, mask_yellow, (255, 0, 255), 2)
-    circle_center_3, radius_4, radius_3 = detect_and_draw_contours(image, mask_red, (255, 0, 255), 1.3, min_radius=100)
-    circle_center_5, radius_6, radius_5 = detect_and_draw_contours(image, mask_blue, (255, 0, 255), 1.2)
-    detect_and_draw_contours(image,mask_border, (255, 0, 255), 1.2)
+    circle_center_1, radius_2, radius_1 = detect_and_draw_contours(imgOut, mask_yellow, (255, 0, 255), 2)
+    circle_center_3, radius_4, radius_3 = detect_and_draw_contours(imgOut, mask_red, (0, 0, 255), 1.3)
+    circle_center_5, radius_6, radius_5 = detect_and_draw_contours(imgOut, mask_blue, (255, 0, 0), 1.2)
 
     center_x, center_y= circle_center_5
     upperBound = center_y - radius_6
@@ -108,7 +151,7 @@ def main():
     circle_center_4 = circle_center_3
     circle_center_6 = circle_center_5
 
-    # # # # Find lines using Hough Line Transform
+    # # # Find lines using Hough Line Transform
     lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold = 100,minLineLength = 100,maxLineGap = 10)
     count_line = 0
     score = "No score"
@@ -116,16 +159,11 @@ def main():
         
         for line in lines:
             x1, y1, x2, y2 = line[0]
-            # cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 1)
-            # cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
             if((y1 > upperBound and y1 < lowerBound and x1 > leftBound and x1 < rightBound) or 
                (y2 > upperBound and y2 < lowerBound and x2 > leftBound and x2 < rightBound)):
                 count_line += 1
-                print(f'line = {count_line}')
                 if count_line > 1:
                     break
-            # if(y2 > upperBound and y2 < lowerBound and x2 > leftBound and x2 < rightBound):
-            # if(y1 > upperBound and y1 < lowerBound and x1 > leftBound and x1 < rightBound):
                 tip_pos_1 = euclidean_distance((x1, y1), circle_center_1)
                 tip_pos_1_end = euclidean_distance((x2, y2), circle_center_1)
                 tip_pos_2 = euclidean_distance((x1, y1), circle_center_2)
@@ -171,25 +209,25 @@ def main():
                     cv2.putText(image, f'score : 5 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                     print(f'5 : {is_inside_6}')
 
-                cv2.line(image, (x1, y1), (x2, y2), (255, 0, 0), 4)
-                cv2.circle(image, (x1, y1), 2, (255, 255, 255), 5)
-                cv2.circle(image, (x2, y2), 2, (0, 0, 255), 5)
+                cv2.line(imgOut, (x1, y1), (x2, y2), (255, 0, 0), 4)
+                cv2.circle(imgOut, (x1, y1), 2, (255, 255, 255), 5)
+                cv2.circle(imgOut, (x2, y2), 2, (0, 0, 255), 5)
 
     # Save the processed image
-    output_image_path = 'processed_image.png'
-    cv2.imwrite(output_image_path, image)
+    # output_image_path = 'processed_image.png'
+    # cv2.imwrite(output_image_path, image)
 
     # Write score and time to score.txt
-    with open('score.txt', 'a') as file:
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        file.write(f'Time: {current_time}, Score: {score}\n')
+    # with open('score.txt', 'a') as file:
+    #     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    #     file.write(f'Time: {current_time}, Score: {score}\n')
 
     # Display result color
     
     # cv2.imshow('Biru', mask_blue)
-    # cv2.imshow('merah', mask_red)
-    # cv2.imshow('kuning', mask_yellow)
-    cv2.imshow('batas', border)
+    cv2.imshow('merah', mask_red)
+    cv2.imshow('kuning', mask_yellow)
+    # cv2.imshow('batas', border)
 
     # cv2.imshow('not_biru', not_blue)
     # cv2.imshow('not_merah', not_red)
@@ -199,6 +237,7 @@ def main():
     # cv2.imshow('Combined Masks', combined_mask)
     cv2.imshow('arrow', arrow)  
     cv2.imshow('Image with Circles', image)
+    cv2.imshow('Image trans', imgOut)
 
     # Wait for key press and exit on 'q'
     while cv2.waitKey(0) & 0xFF != ord('q'):

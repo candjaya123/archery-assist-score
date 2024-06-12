@@ -1,7 +1,7 @@
 import cv2
 
 # Create a VideoCapture object
-cap = cv2.VideoCapture(0)  # 0 for the default camera, you can also pass the camera index if you have multiple cameras
+cap = cv2.VideoCapture(1)  # 0 for the default camera, you can also pass the camera index if you have multiple cameras
 
 while True:
     # Capture frame-by-frame
