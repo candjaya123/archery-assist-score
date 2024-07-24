@@ -93,20 +93,25 @@ def main():
 
     # Load the image
     kernel = np.ones((5, 5), np.uint8)
-    image = cv2.imread('new_tes/new7.png')  # Replace 'your_image.jpg' with the path to your image file
+    image = cv2.imread('new_tes/real1.png')  # Replace 'your_image.jpg' with the path to your image file
     blurred_image = cv2.GaussianBlur(image, (11, 11), 0)
     hsv_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HSV)
     border = detect_color(hsv_image, min_hue_temp5, max_hue_temp5, min_saturation_temp5, max_saturation_temp5, min_value_temp5, max_value_temp5)
     mask_border = cv2.dilate(border,kernel,iterations = 1)
-    center1, center2, center3, center4 = detect_green_circles(image,mask_border)
+    # center1, center2, center3, center4 = detect_green_circles(image,mask_border)
+    center1 = (35, 15)
+    center2 = (470, 28)
+    center3 = (1, 405)
+    center4 = (490, 425)
     width_trans = 640
     height_trans = 640
-
     pts1 = np.float32([center1,center2,center3,center4])
     pts2 = np.float32([[0,0],[width_trans,0],[0,height_trans],[width_trans,height_trans]])
     matrix = cv2.getPerspectiveTransform(pts1,pts2)
     imgOut = cv2.warpPerspective(image,matrix,(width_trans,height_trans))
+    # cv2.imshow('trans', imgwarp)
 
+    # imgOut = image
     blurred_imgOut = cv2.GaussianBlur(imgOut, (11, 11), 0)
     hsv_imgOut = cv2.cvtColor(blurred_imgOut, cv2.COLOR_BGR2HSV)
 
@@ -152,7 +157,7 @@ def main():
     circle_center_6 = circle_center_5
 
     # # # Find lines using Hough Line Transform
-    lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold = 100,minLineLength = 100,maxLineGap = 10)
+    lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold = 100,minLineLength = 200,maxLineGap = 25)
     count_line = 0
     score = "No score"
     if lines is not None:

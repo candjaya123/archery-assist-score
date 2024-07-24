@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image = cv2.imread('image2.png')  # Replace 'your_image.jpg' with the path to your image
+image = cv2.imread('label_raka2.png')  # Replace 'your_image.jpg' with the path to your image
 
 # Create a window to display the image
 cv2.namedWindow('Image')

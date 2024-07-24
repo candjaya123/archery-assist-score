@@ -7,6 +7,8 @@ import importlib.util
 import time 
 from tensorflow.lite.python.interpreter import Interpreter
 
+###############DEFINE MODEL##############################
+
 MODEL_NAME = 'model_lite'
 GRAPH_NAME = 'detect.tflite'
 LABELMAP_NAME = 'labelmap.txt'
@@ -14,14 +16,18 @@ CWD_PATH = os.getcwd()
 PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,GRAPH_NAME)
 PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_NAME,LABELMAP_NAME)
 
-num_device = 0
+num_device = 'demo_raka.mp4'
 
 min_conf_threshold = 0.7
 prev_frame_time = 0
 new_frame_time = 0
 
+#####################FUNGSI HITUNG JARAK##############################
+
 def euclidean_distance(point1, point2):
     return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+
+####################FUNGSI MENGAMBIL NILAI HSV###############################
 
 def load_hsv_ranges(file_path):
     with open(file_path, 'r') as file:
@@ -33,6 +39,8 @@ def load_hsv_ranges(file_path):
         min_value_temp = int(lines[4].split('=')[1])
         max_value_temp = int(lines[5].split('=')[1])
     return min_hue_temp, max_hue_temp, min_saturation_temp, max_saturation_temp, min_value_temp, max_value_temp
+
+#####################FUNGSI DETEKSI 
 
 def detect_color(hsv_frame, min_hue, max_hue, min_saturation, max_saturation, min_value, max_value):
     lower_bound = np.array([min_hue, min_saturation, min_value])
@@ -131,6 +139,13 @@ if __name__ == '__main__':
     video = cv2.VideoCapture(num_device)
     imW = video.get(cv2.CAP_PROP_FRAME_WIDTH)
     imH = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = int(video.get(cv2.CAP_PROP_FPS))
+
+    # Initialize video writer for recording
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('output.avi', fourcc, fps, (int(imW), int(imH)))
+    out_crop = cv2.VideoWriter('output_detect.avi', fourcc, fps, (640, 640))
+    out_arrow = cv2.VideoWriter('output_arrow.avi', fourcc, fps, (640, 640))
 
     not_see_logo = 0
     while(video.isOpened()):
@@ -186,26 +201,37 @@ if __name__ == '__main__':
                     hsv_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HSV)
                     border = detect_color(hsv_image, min_hue_temp5, max_hue_temp5, min_saturation_temp5, max_saturation_temp5, min_value_temp5, max_value_temp5)
                     mask_border = cv2.dilate(border,kernel,iterations = 1)
-                    center1, center2, center3, center4 = detect_green_circles(image,mask_border)
+                    # center1, center2, center3, center4 = detect_green_circles(image,mask_border)
+                    ################SEMENTARA######################
+                    # cv2.circle(frame, (455, 160), 10, (0, 255, 0), -1)
+                    # cv2.circle(frame, (830, 40), 10, (0, 255, 0), -1)
+                    # cv2.circle(frame, (400, 580), 10, (0, 255, 0), -1)
+                    # cv2.circle(frame, (825, 515), 10, (0, 255, 0), -1)
+                    center1 = (455, 180)
+                    center2 = (830, 60)
+                    center3 = (400, 565)
+                    center4 = (825, 500)
+                    ################SEMENTARA######################
                     if(center1 != None and center2 != None and center3 != None and center4 != None):
-                        print("masuk")
+                        # print("masuk")
                         width_trans = 640
                         height_trans = 640
 
                         pts1 = np.float32([center1,center2,center3,center4])
                         pts2 = np.float32([[0,0],[width_trans,0],[0,height_trans],[width_trans,height_trans]])
-                        print(f'pts {pts1}')
-                        print(f'center1 {center1}')
+                        # print(f'pts {pts1}')
+                        # print(f'center1 {center1}')
                         matrix = cv2.getPerspectiveTransform(pts1,pts2)
-                        imgOut = cv2.warpPerspective(image,matrix,(width_trans,height_trans))
+                        imgOut = cv2.warpPerspective(frame,matrix,(width_trans,height_trans))
+                        # imgOut = cv2.warpPerspective(image,matrix,(width_trans,height_trans))
                     else:
                         imgOut = image 
+
                     blurred_imgOut = cv2.GaussianBlur(imgOut, (11, 11), 0)
                     hsv_imgOut = cv2.cvtColor(blurred_imgOut, cv2.COLOR_BGR2HSV)
 
                     mask_raw_blue = detect_color(hsv_imgOut, min_hue_temp1, max_hue_temp1, min_saturation_temp1, max_saturation_temp1, min_value_temp1, max_value_temp1)
                     mask_raw_red = detect_color(hsv_imgOut, min_hue_temp2, max_hue_temp2, min_saturation_temp2, max_saturation_temp2, min_value_temp2, max_value_temp2)
-                    mask_raw_yellow = detect_color(hsv_imgOut, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
                     mask_raw_yellow = detect_color(hsv_imgOut, min_hue_temp3, max_hue_temp3, min_saturation_temp3, max_saturation_temp3, min_value_temp3, max_value_temp3)
                     mask_raw_white = detect_color(hsv_imgOut, min_hue_temp4, max_hue_temp4, min_saturation_temp4, max_saturation_temp4, min_value_temp4, max_value_temp4)
 
@@ -215,6 +241,7 @@ if __name__ == '__main__':
 
                     mask_yellow = cv2.bitwise_and(mask_raw_yellow, not_mask_blue)
                     not_yellow = cv2.bitwise_not(mask_yellow)
+                    not_yellow = cv2.morphologyEx(not_yellow, cv2.MORPH_CLOSE, kernel)
                     mask_red = cv2.bitwise_and(mask_raw_red, cv2.bitwise_and(not_mask_blue, not_yellow))
                     not_red = cv2.bitwise_not(mask_red)
                     mask_blue = cv2.bitwise_and(mask_raw_blue, cv2.bitwise_and(not_red, not_yellow))
@@ -226,9 +253,33 @@ if __name__ == '__main__':
                     arrow = cv2.morphologyEx(arrow, cv2.MORPH_CLOSE, kernel)
                     arrow = cv2.dilate(arrow,kernel,iterations = 1)
 
-                    circle_center_1, radius_2, radius_1 = detect_and_draw_contours(imgOut, mask_yellow, (255, 0, 255), 2)
-                    circle_center_3, radius_4, radius_3 = detect_and_draw_contours(imgOut, mask_red, (0, 0, 255), 1.3)
-                    circle_center_5, radius_6, radius_5 = detect_and_draw_contours(imgOut, mask_blue, (255, 0, 0), 1.2)
+                    # circle_center_1, radius_2, radius_1 = detect_and_draw_contours(imgOut, mask_yellow, (255, 0, 255), 2)
+                    # circle_center_3, radius_4, radius_3 = detect_and_draw_contours(imgOut, mask_red, (0, 255, 255), 1.3)
+                    # circle_center_5, radius_6, radius_5 = detect_and_draw_contours(imgOut, mask_blue, (255, 0, 0), 1.2)
+                    # print(f'circle_center_1 = {circle_center_1} -- radius_2 = {radius_2} -- radius_1 = {radius_1}')
+                    # print(f'circle_center_3 = {circle_center_3} -- radius_4 = {radius_4} -- radius_3 = {radius_3}')
+                    # print(f'circle_center_5 = {circle_center_5} -- radius_6 = {radius_6} -- radius_5 = {radius_5}')
+
+                    circle_center_1 = (325, 313)
+                    circle_center_3 = (321, 311)
+                    circle_center_5 = (317, 307)
+                    radius_2 = 98
+                    radius_4 = 199
+                    radius_6 = 307
+                    radius_1 = 49
+                    radius_3 = 153
+                    radius_5 = 255
+                    cv2.circle(imgOut, (325, 313), radius_2, (255, 0, 255), 3)
+                    cv2.circle(imgOut, (325, 313), int(radius_2/2), (255, 0, 255), 3)
+                    cv2.circle(imgOut, (325, 313), 2, (255, 0, 255), 3)  # Draw the center of the circle
+
+                    cv2.circle(imgOut, (321, 311), radius_4, (0, 255, 255), 3)
+                    cv2.circle(imgOut, (321, 311), int(radius_4/1.3), (0, 255, 255), 3)
+                    cv2.circle(imgOut, (321, 311), 2, (0, 255, 255), 3)  # Draw the center of the circle
+
+                    cv2.circle(imgOut, (317, 307), radius_6, (255, 0, 0), 3)
+                    cv2.circle(imgOut, (317, 307), int(radius_6/1.2), (255, 0, 0), 3)
+                    cv2.circle(imgOut, (317, 307), 2, (255, 0, 0), 3)  # Draw the center of the circle
 
                     if(circle_center_1 != 0 and circle_center_3 != 0 and circle_center_5 != 0):
                         center_x, center_y= circle_center_5
@@ -242,7 +293,7 @@ if __name__ == '__main__':
                         circle_center_6 = circle_center_5 
 
                         # # # Find lines using Hough Line Transform
-                        lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold = 100,minLineLength = 100,maxLineGap = 10)
+                        lines = cv2.HoughLinesP(arrow, 1, np.pi / 180, threshold = 100,minLineLength = 20,maxLineGap = 10)
                         count_line = 0
                         score = "No score"
                         if lines is not None:
@@ -277,45 +328,53 @@ if __name__ == '__main__':
                                     if(is_inside_1):
                                         print(f'tengah : {is_inside_1}')
                                         score = "10 point"
-                                        cv2.putText(image, f'score : 10 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 10 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                     elif(is_inside_2):
                                         score = "9 point"
-                                        cv2.putText(image, f'score : 9 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 9 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                         print(f'9 : {is_inside_2}')
                                     elif(is_inside_3):
                                         score = "8 point"
-                                        cv2.putText(image, f'score : 8 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 8 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                         print(f'8 : {is_inside_3}')
                                     elif(is_inside_4):
                                         score = "7 point"
-                                        cv2.putText(image, f'score : 7 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 7 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                         print(f'7 : {is_inside_4}')
                                     elif(is_inside_5):
                                         score = "6 point"
-                                        cv2.putText(image, f'score : 6 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 6 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                         print(f'6 : {is_inside_5}')
                                     elif(is_inside_6):
                                         score = "5 point"
-                                        cv2.putText(image, f'score : 5 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                                        # cv2.putText(imgOut, f'score : 5 point', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
                                         print(f'5 : {is_inside_6}')
 
-                                    cv2.line(imgOut, (x1, y1), (x2, y2), (255, 0, 0), 4)
-                                    cv2.circle(imgOut, (x1, y1), 2, (255, 255, 255), 5)
-                                    cv2.circle(imgOut, (x2, y2), 2, (0, 0, 255), 5)
-                                    cv2.imshow('Image trans', imgOut)
+                                    # cv2.line(imgOut, (x1, y1), (x2, y2), (255, 0, 0), 4)
+                                    # cv2.circle(imgOut, (x1, y1), 2, (255, 255, 255), 5)
+                                    # cv2.circle(imgOut, (x2, y2), 2, (0, 0, 255), 5)
+                                    # cv2.imshow('Image trans', imgOut)
+                                    # out_crop.write(imgOut)
+                                    # cv2.imshow('arrow', arrow) 
 
                 # cv2.imshow('Biru', mask_blue)
                 # cv2.imshow('merah', mask_red)
                 # cv2.imshow('kuning', mask_yellow)
+                # cv2.imshow('arrow', arrow) 
                 # cv2.imshow('not_putih', not_white)
                 # cv2.imshow('not_hitam', not_black)
                 # cv2.imshow('not_biru', not_blue)
                 # cv2.imshow('not_merah', not_red)
                 # cv2.imshow('not_kuning', not_yellow)
-                # cv2.imshow('arrow', arrow)  
-                cv2.imshow('crop',cropped_image)
+                 
+
+                cv2.imshow('Image trans', imgOut)
+                out_crop.write(imgOut)
+                
+                # cv2.imshow('crop',cropped_image)
                 
         cv2.imshow('Object detector', frame)
+        out.write(frame)
 
         # Press 'q' to quit
         if cv2.waitKey(1) == ord('q'):

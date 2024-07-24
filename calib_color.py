@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Initialize the webcam
-cap = cv2.VideoCapture(1)  # Use 0 for the default webcam; you can change the index if you have multiple cameras.
+cap = cv2.VideoCapture("demo.avi")  # Use 0 for the default webcam; you can change the index if you have multiple cameras.
 
 # Create a window to display the camera feed
 cv2.namedWindow('Camera Feed')
